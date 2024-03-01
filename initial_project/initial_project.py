@@ -71,6 +71,7 @@ def volatility(S, K, r, q, t, market_price):
     return sigma
 
 
+"""
 TICKER = "SPY"
 EXPIRATION = "2024-03-28"
 RISK_FREE_INTEREST_RATE = 0.05375  # 1 month T-bills because expiration in 1 month
@@ -79,6 +80,7 @@ ticker = yf.Ticker(TICKER)
 options = ticker.option_chain(date=EXPIRATION)
 calls = pd.DataFrame(options.calls)
 df = calls[["strike", "lastPrice"]].copy()
+
 
 ymd = [int(x) for x in EXPIRATION.split("-")]
 t = float((datetime(*ymd) - datetime.now()).days) / 365
@@ -89,6 +91,18 @@ except:
     q = 0
 
 r = RISK_FREE_INTEREST_RATE
+"""
+
+""" TESTING WITH EXAMPLE DATA """
+
+S = 3998.75
+r = 0.0463338426957343
+q = 0.0178246010503463  # Dividend Yield
+t = 43 / 252
+
+
+df = pd.read_csv("input_data.csv")
+df = df.rename(columns={"Strike": "strike", "Call Value": "lastPrice"})
 
 df["implied volatility"] = df.apply(
     lambda row: volatility(S, row["strike"], r, q, t, row["lastPrice"]), axis=1
