@@ -22,36 +22,46 @@ Phi = norm.cdf
 
 
 def d1(S, K, r, q, t, sigma):
-    return (np.log(S/K)+(r-q+np.power(sigma, 2)/2)*t)/(sigma*np.sqrt(t))
+    return (np.log(S / K) + (r - q + np.power(sigma, 2) / 2) * t) / (sigma * np.sqrt(t))
 
 
 def d2(S, K, r, q, t, sigma):
 
-    return d1(**locals()) - sigma*np.sqrt(t)
+    return d1(**locals()) - sigma * np.sqrt(t)
 
 
 def fair_value(S, K, r, q, t, sigma):
-    return S*np.exp(-q*t)*Phi(d1(**locals()))-np.exp(-r*t)*K*Phi(d2(**locals()))
+    return S * np.exp(-q * t) * Phi(d1(**locals())) - np.exp(-r * t) * K * Phi(
+        d2(**locals())
+    )
 
 
 def delta(S, K, r, q, t, sigma):
-    return np.exp(-q*t)*Phi(d1(**locals()))
+    return np.exp(-q * t) * Phi(d1(**locals()))
 
 
 def gamma(S, K, r, q, t, sigma):
-    return np.exp(-q*t)*((phi(d1(**locals())))/(S*sigma*np.sqrt(t)))
+    return np.exp(-q * t) * ((phi(d1(**locals()))) / (S * sigma * np.sqrt(t)))
 
 
 def theta(S, K, r, q, t, sigma):
-    return (-np.exp(-q*t)*((S*phi(d1(**locals()))*sigma)/(2*np.sqrt(t)))-r*K*np.exp(-r*t)*Phi(d2(**locals()))+q*S*np.exp(-q*t)*Phi(d1(**locals())))*0.01
+    return (
+        -np.exp(-q * t) * ((S * phi(d1(**locals())) * sigma) / (2 * np.sqrt(t)))
+        - r * K * np.exp(-r * t) * Phi(d2(**locals()))
+        + q * S * np.exp(-q * t) * Phi(d1(**locals()))
+    ) * 0.01
 
 
 def vega(S, K, r, q, t, sigma):
-    return S*np.exp(-q*t)*phi(d1(**locals()))*np.sqrt(t)*0.01
+    return S * np.exp(-q * t) * phi(d1(**locals())) * np.sqrt(t) * 0.01
+
+
+def rho(S, K, r, q, t, sigma):
+    return K * t * np.exp(-r * t) * Phi(d2(**locals())) * 0.01
 
 
 def volatility(S, K, r, q, t, market_price):
-    max_iter = 1000
+    max_iter = 400
     sigma = 1
     for _ in range(max_iter):
         bs_price = fair_value(S, K, r, q, t, sigma)
@@ -63,22 +73,21 @@ def volatility(S, K, r, q, t, market_price):
 
 TICKER = "NVDA"
 EXPIRATION = "2024-03-28"
-ANNUAL_INTEREST_RATE = 0.055
+RISK_FREE_INTEREST_RATE = 0.0425
 
 ticker = yf.Ticker(TICKER)
 options = ticker.option_chain(date=EXPIRATION)
 calls = pd.DataFrame(options.calls)
 df = calls[["strike", "lastPrice"]].copy()
 
-ymd = [int(x) for x in EXPIRATION.split('-')]
-t = float(
-    (datetime(*ymd) - datetime.now()).days) / 365
+ymd = [int(x) for x in EXPIRATION.split("-")]
+t = float((datetime(*ymd) - datetime.now()).days) / 365
 S = ticker.info["open"]
 try:
     q = ticker.info["yield"]
 except:
     q = 0
-r = np.log(1 + ANNUAL_INTEREST_RATE) / (t * 365)
+r = np.log(1 + RISK_FREE_INTEREST_RATE) / (t * 365)
 
 df["implied volatility"] = df.apply(
     lambda row: volatility(S, row["strike"], r, q, t, row["lastPrice"]), axis=1
@@ -94,6 +103,9 @@ df["theta"] = df.apply(
 )
 df["vega"] = df.apply(
     lambda row: vega(S, row["strike"], r, q, t, row["implied volatility"]), axis=1
+)
+df["rho"] = df.apply(
+    lambda row: rho(S, row["strike"], r, q, t, row["implied volatility"]), axis=1
 )
 
 df.to_csv("options_book.csv", index=False)
