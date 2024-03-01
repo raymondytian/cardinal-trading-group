@@ -61,7 +61,7 @@ def rho(S, K, r, q, t, sigma):
 
 
 def volatility(S, K, r, q, t, market_price):
-    max_iter = 400
+    max_iter = 1000
     sigma = 1
     for _ in range(max_iter):
         bs_price = fair_value(S, K, r, q, t, sigma)
@@ -71,9 +71,9 @@ def volatility(S, K, r, q, t, market_price):
     return sigma
 
 
-TICKER = "NVDA"
+TICKER = "SPY"
 EXPIRATION = "2024-03-28"
-RISK_FREE_INTEREST_RATE = 0.0425
+RISK_FREE_INTEREST_RATE = 0.05375
 
 ticker = yf.Ticker(TICKER)
 options = ticker.option_chain(date=EXPIRATION)
@@ -87,7 +87,8 @@ try:
     q = ticker.info["yield"]
 except:
     q = 0
-r = np.log(1 + RISK_FREE_INTEREST_RATE) / (t * 365)
+
+r = RISK_FREE_INTEREST_RATE
 
 df["implied volatility"] = df.apply(
     lambda row: volatility(S, row["strike"], r, q, t, row["lastPrice"]), axis=1
