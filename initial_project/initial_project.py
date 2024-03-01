@@ -46,10 +46,14 @@ def gamma(S, K, r, q, t, sigma):
 
 def theta(S, K, r, q, t, sigma):
     return (
-        -np.exp(-q * t) * ((S * phi(d1(**locals())) * sigma) / (2 * np.sqrt(t)))
-        - r * K * np.exp(-r * t) * Phi(d2(**locals()))
-        + q * S * np.exp(-q * t) * Phi(d1(**locals()))
-    ) * 0.01
+        (
+            -np.exp(-q * t) * ((S * phi(d1(**locals())) * sigma) / (2 * np.sqrt(t)))
+            - r * K * np.exp(-r * t) * Phi(d2(**locals()))
+            + q * S * np.exp(-q * t) * Phi(d1(**locals()))
+        )
+        * 0.01
+        * (6.5 / 24)
+    )
 
 
 def vega(S, K, r, q, t, sigma):
@@ -73,7 +77,7 @@ def volatility(S, K, r, q, t, market_price):
 
 TICKER = "SPY"
 EXPIRATION = "2024-03-28"
-RISK_FREE_INTEREST_RATE = 0.05375
+RISK_FREE_INTEREST_RATE = 0.05375  # 1 month T-bills because expiration in 1 month
 
 ticker = yf.Ticker(TICKER)
 options = ticker.option_chain(date=EXPIRATION)
