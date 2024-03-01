@@ -46,14 +46,10 @@ def gamma(S, K, r, q, t, sigma):
 
 def theta(S, K, r, q, t, sigma):
     return (
-        (
-            -np.exp(-q * t) * ((S * phi(d1(**locals())) * sigma) / (2 * np.sqrt(t)))
-            - r * K * np.exp(-r * t) * Phi(d2(**locals()))
-            + q * S * np.exp(-q * t) * Phi(d1(**locals()))
-        )
-        * 0.01
-        * (6.5 / 24)
-    )
+        -np.exp(-q * t) * ((S * phi(d1(**locals())) * sigma) / (2 * np.sqrt(t)))
+        - r * K * np.exp(-r * t) * Phi(d2(**locals()))
+        + q * S * np.exp(-q * t) * Phi(d1(**locals()))
+    ) * 0.01
 
 
 def vega(S, K, r, q, t, sigma):
